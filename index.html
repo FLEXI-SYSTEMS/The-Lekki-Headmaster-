@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Lekki Headmaster WhatsApp Study Group</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+}
+h1 { margin-bottom: 20px; }
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+img {
+    max-width: 300px;
+    width: 100%;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+button {
+    padding: 14px 24px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    background: #25D366;
+    color: white;
+    cursor: pointer;
+}
+button:disabled {
+    background: gray;
+    cursor: not-allowed;
+}
+</style>
+</head>
+
+<body>
+
+<h1>The Lekki Headmaster WhatsApp study Group</h1>
+
+<div class="container">
+    <img src="https://i.postimg.cc/50KYbjx2/images-(1)-(30).jpg">
+    <button id="joinBtn" onclick="joinGroup()">Join Study Group</button>
+</div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+apiKey: "AIzaSyAhaU5XoOuhHprSFVi_8aYskw5_YtUndII",
+  authDomain: "lekki-headmaster.firebaseapp.com",
+  projectId: "lekki-headmaster",
+  storageBucket: "lekki-headmaster.appspot.com",
+  messagingSenderId: "771477664597",
+  appId: "1:771477664597:web:996380a06b20a7c60775dc"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const SECRET_KEY= "FLEXITUTORS@2026"
+
+const groupLinks = [
+"https://chat.whatsapp.com/GHQMusXi3NZ3pBZdqsV140?mode=gi_t",
+"https://chat.whatsapp.com/Ji9L7tORvkCGxptldSoc2g?mode=gi_t",
+"https://chat.whatsapp.com/LdiB7RdcZLW7XFRlBPe1VX?mode=gi_t",
+"https://chat.whatsapp.com/Gk5AQHKuuRsAlxhtDTBQ3h?mode=gi_t",
+"https://chat.whatsapp.com/LWPgDWNJuYZ50oOi61ZSty?mode=gi_t",
+"https://chat.whatsapp.com/D1OW2ygWT1BIQ4QHOLjVH6?mode=gi_t",
+"https://chat.whatsapp.com/DYSSK6RDzEHIDB5SUvmt0y?mode=gi_t",
+"https://chat.whatsapp.com/FIGZJTlqb8jEpZhfHvNK3h?mode=gi_t",
+"https://chat.whatsapp.com/IjnKrMv8enmAfm1Y8AJm9H?mode=gi_t",
+"https://chat.whatsapp.com/G4vGY7M5VT5Lqjlye3BPC3?mode=gi_t",
+"https://chat.whatsapp.com/GgQzGXIntavLH0bmQnxr1C?mode=gi_t",
+"https://chat.whatsapp.com/BebIOaM0pbt2tFHcUY8oWX?mode=gi_t"
+];
+
+// 🚫 Anti-spam (one join per device)
+const btn = document.getElementById("joinBtn");
+if (localStorage.getItem("joinedStudyGroup")) {
+    btn.innerText = "Already Joined";
+    btn.disabled = true;
+}
+
+async function joinGroup() {
+    if (localStorage.getItem("joinedStudyGroup")) return;
+
+    btn.disabled = true;
+    btn.innerText = "Joining...";
+
+    const docRef = db.collection("studyGroup").doc("counts");
+
+    try {
+        const selectedIndex = await db.runTransaction(async (transaction) => {
+            const doc = await transaction.get(docRef);
+
+            let counts;
+
+            if (!doc.exists || !Array.isArray(doc.data().counts)) {
+                counts = Array(groupLinks.length).fill(0);
+            } else {
+                counts = doc.data().counts;
+            }
+
+            let minCount = counts[0];
+            let index = 0;
+
+            for (let i = 1; i < counts.length; i++) {
+                if (counts[i] < minCount) {
+                    minCount = counts[i];
+                    index = i;
+                }
+            }
+
+            counts[index]++;
+
+            transaction.set(docRef, {
+                counts,
+                secretKey: SECRET_KEY
+            });
+
+            return index;
+        });
+
+        localStorage.setItem("joinedStudyGroup", "true");
+        window.location.href = groupLinks[selectedIndex];
+
+    } catch (error) {
+        alert("Please try again.");
+        btn.disabled = false;
+        btn.innerText = "Join Study Group";
+        console.error(error);
+    }
+}
+</script>
+</body>
+</html>
